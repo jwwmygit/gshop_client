@@ -7,6 +7,9 @@
 <script>
   import FooterGuide from './components/FooterGuide/FooterGuide.vue'
  export default {
+   mounted () {
+    this.$store.dispatch('getAddress')
+   },
     components:{
       FooterGuide
     }

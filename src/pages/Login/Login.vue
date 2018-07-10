@@ -4,16 +4,18 @@
       <div class="login_header">
         <h2 class="login_logo">硅谷外卖</h2>
         <div class="login_header_title">
-          <a href="javascript:;" class="on">短信登录</a>
-          <a href="javascript:;" >密码登录</a>
+          <a href="javascript:;" :class="{on:isHide}" @click="isHide=!isHide">短信登录</a>
+          <a href="javascript:;" :class="{on:!isHide}" @click="isHide=!isHide">密码登录</a>
         </div>
       </div>
       <div class="login_content">
-        <form>
-          <div class="on">
+        <form>/
+          <div :class="{on:isHide}">
             <section class="login_message">
-              <input type="tel" maxlength="11" placeholder="手机号">
-              <button disabled="disabled" class="get_verification" >获取验证码</button>
+              <input type="tel" maxlength="11" placeholder="手机号" v-model="phone">
+              <button  class="get_verification" :class="{right_phone_number:isRightPhone}" @click="sendCode">
+                {{computeTime>0? `已发送(${computeTime})`:'获取验证码'}}
+              </button>
             </section>
             <section class="login_verification">
               <input type="tel" maxlength="8" placeholder="验证码">
@@ -23,16 +25,16 @@
               <a href="javascript:;">《用户服务协议》</a>
             </section>
           </div>
-          <div>
+          <div :class="{on:!isHide}">
             <section>
               <section class="login_message">
                 <input type="tel" maxlength="11" placeholder="手机/邮箱/用户名">
               </section>
               <section class="login_verification">
-                <input type="tel" maxlength="8" placeholder="密码">
-                <div class="switch_button off">
-                  <div class="switch_circle"></div>
-                  <span class="switch_text">...</span>
+                <input :type="types ?'password':'text'" maxlength="8" placeholder="密码" >
+                <div class="switch_button " :class="types? 'off':'on'" @click="types=!types">
+                  <div class="switch_circle" :class="{right:!types}"></div>
+                  <span class="switch_text">{{types ? '...': 'abc'}}</span>
                 </div>
               </section>
               <section class="login_message">
@@ -53,6 +55,37 @@
 </template>
 <script>
     export default {
+      data(){
+        return{
+          isHide:true,//短信登录和密码登录切换
+          phone:"",//电话号码
+          computeTime: 0,
+          types:true,//点击显示密码
+        }
+      },
+      computed:{
+        isRightPhone(){
+          console.log(/^1\d{10}$/.test(this.phone))
+          return /^1\d{10}$/.test(this.phone)
+        }
+      },
+      methods:{
+        sendCode(){
+//          判断是正确的手机号点击事件才生效并且没有倒计时
+          if(this.isRightPhone&&this.computeTime===0){
+            this.computeTime=10;
+//            每隔一秒减少一个数
+            const intevalId=setInterval(()=>{
+              this.computeTime--;
+              if(this.computeTime===0){
+                clearInterval(intevalId)
+              }
+            },1000)
+          }
+
+
+        }
+      }
 
     }
 
@@ -109,6 +142,7 @@
               font-size 14px
               background #fff
               .get_verification
+                outline none
                 position absolute
                 top 50%
                 right 10px
@@ -117,6 +151,8 @@
                 color #ccc
                 font-size 14px
                 background transparent
+                &.right_phone_number
+                  color black
             .login_verification
               position relative
               margin-top 16px
@@ -156,6 +192,8 @@
                   background #fff
                   box-shadow 0 2px 4px 0 rgba(0,0,0,.1)
                   transition transform .3s
+                  &.right
+                    transform translateX(27px)
             .login_hint
               margin-top 12px
               color #999
