@@ -9,12 +9,12 @@
             <i class="iconfont icon-person"></i>
           </div>
           <div class="user-info">
-            <p class="user-info-top">登录/注册</p>
+            <p class="user-info-top">{{user.name ? user.name :user.phone ? "": "登录/注册" }}</p>
             <p>
                 <span class="user-icon">
                   <i class="iconfont icon-shouji icon-mobile"></i>
                 </span>
-              <span class="icon-mobile-number">暂无绑定手机号</span>
+              <span class="icon-mobile-number">{{user.phone?user.phone:"暂无绑定手机号"}}</span>
             </p>
           </div>
           <span class="arrow">
@@ -90,17 +90,34 @@
           </div>
         </a>
       </section>
+      <section class="profile_my_order border-1px">
+        <mt-button style="width: 100%" type="danger" v-show="user._id" @click="logout">退出登陆</mt-button>
+      </section>
     </section>
+
   </div>
 </template>
 <script>
-  import HeaderTop from '../../components/HeaderTop/HeaderTop.vue'
+  import {MessageBox} from 'mint-ui'
+  import HeaderTop from '../../components/HeaderTop/HeaderTop.vue';
+  import {mapState} from 'vuex'
+  import MtButton from "../../../node_modules/mint-ui/packages/button/src/button.vue";
   export default {
+    computed:{
+      ...mapState(['user'])
+    },
     components:{
       HeaderTop,
-    }
+      MtButton
+    },
+    methods: {
+      logout () {
+        MessageBox.confirm('确定退出吗?').then(action => {// 确认
+          this.$store.dispatch('logout')
+        }, () => {console.log('点击了取消')});
+      }
+    },
   }
-
 </script>
 <style lang="stylus" rel="stylesheet/stylus">
   @import "../../common/stylus/mixins.styl"
