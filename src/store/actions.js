@@ -6,7 +6,10 @@ import {RECEIVE_ADDRESS,
   RESET_USER,
   RECEIVE_GOODS,
   RECEIVE_INFO,
-  RECEIVE_RATINGS
+  RECEIVE_RATINGS,
+  INCREMENT_FOOD_COUNT,
+  DECREMENT_FOOD_COUNT,
+  CLEAR_CART
       } from './muation-types'
 import {reqAddress,
   reqFoodTypes,
@@ -80,20 +83,35 @@ export default {
     }
   },
   //异步获取评价列表
-  async getShopRatings({commit}){
+  async getShopRatings({commit},cb){
     const result=await reqShopRatings();
     if(result.code===0){
       const ratings=result.data;
       commit(RECEIVE_RATINGS,{ratings})
+      cb&&cb()
     }
   },
   //异步获取商家信息
-  async getShopInfo({commit}){
+  async getShopInfo({commit},cb){
     const result=await reqShopInfo();
     if(result.code===0){
       const info=result.data;
       commit(RECEIVE_INFO,{info})
+      cb&&cb()
     }
+  },
+//  同步改变food的数量
+  updateFoodCount({commit},{food,isAdd}){
+    if(isAdd){//增加数量
+      commit(INCREMENT_FOOD_COUNT,{food})
+
+    }else {
+      commit(DECREMENT_FOOD_COUNT,{food})
+    }
+  },
+  clearCart({commit}){
+    commit(CLEAR_CART)
   }
+
 }
 

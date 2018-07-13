@@ -1,20 +1,25 @@
 <template>
-  <div>
-    <div class="goods">
+  <div >
+    <div class="goods" >
       <div class="menu-wrapper">
         <ul >
-          <li class="menu-item" v-for="(good,index) in goods" :key="index">
+          <!--current-->
+          <li class="menu-item" v-for="(good,index) in goods" :key="index"
+              :class="{current:index===currentIndex}" @click="clikItem(index)"
+          >
             <img class="icon" :src="good.icon" v-if="good.icon">
             <span class="text bottom-border-1px">{{good.name}}</span>
           </li>
         </ul>
       </div>
-      <div class="foods-wrapper">
-        <ul>
+      <div class="foods-wrapper" >
+        <ul ref="foodsUl">
           <li class="food-list-hook" v-for="(good,index) in goods" :key="index">
             <h1 class="title">折扣</h1>
             <ul>
-              <li class="food-item bottom-border-1px" v-for="(food,index) in good.foods" :key="index">
+              <li class="food-item bottom-border-1px" v-for="(food,index) in good.foods" :key="index"
+              @click="showFood(food)"
+              >
                 <div class="icon">
                   <img width="57" height="57"
                        :src="food.icon">
@@ -30,7 +35,7 @@
                     <span class="old" v-if="food.oldPrice">￥{{food.oldPrice}}</span>
                   </div>
                   <div class="cartcontrol-wrapper">
-                    CartControl组件
+                    <CartControl :food="food" />
                   </div>
                 </div>
               </li>
@@ -38,27 +43,97 @@
           </li>
         </ul>
       </div>
+      <ShopCart />
     </div>
+    <Food :food="food" ref="food" />
   </div>
 
 </template>
 <script>
+  import CartControl from '../../../components/CartControl/CartControl.vue'
+  import ShopCart from '../../../components/ShopCart/ShopCart.vue'
+
+  import Food from '../../../components/Food/Food.vue'
   import BScroll from 'better-scroll'
   import {mapState} from 'vuex'
     export default {
+    data(){
+      return{
+        tops:[],
+        scrollY:0,
+        food:{}
+
+      }
+    },
     mounted(){
       this.$store.dispatch('getShopGoods',()=>{
         this.$nextTick(()=>{
-          new BScroll('.menu-wrapper');
-          new BScroll('.foods-wrapper');
+         this._initScroll();
+         this._intTops();
         })
 
       });
 
     },
-    computed:{
-      ...mapState(['goods'])
-    }
+     components:{
+       CartControl,
+       ShopCart,
+       Food,
+
+     },
+      methods: {
+        _initScroll() {
+          new BScroll('.menu-wrapper');
+          this.foodsScroll = new BScroll('.foods-wrapper', {
+            probeType: 2,
+            click:true
+          });
+          this.foodsScroll.on('scroll', ({x, y}) => {
+            console.log(x,y)
+            this.scrollY = Math.abs(y);
+
+          })
+          this.foodsScroll.on('scrollEnd', ({x, y}) => {
+            console.log('scrollEnd',x,y)
+            this.scrollY = Math.abs(y);
+
+          })
+        },
+        _intTops() {
+          const tops = [];
+          //遍历所有的li，累加高度生成top，并保存到tops中
+          const lis = this.$refs.foodsUl.getElementsByClassName('food-list-hook');
+          let top = 0;
+          tops.push(top);
+          Array.from(lis).forEach(li => {
+            top += li.clientHeight
+            tops.push(top)
+
+          })
+//          更新tops数据
+          this.tops = tops
+        },
+        clikItem(index){
+          const y=-this.tops[index];
+          this.scrollY=-y;
+          this.foodsScroll.scrollTo(0,y,500)
+        },
+        showFood(food){
+          this.food=food;
+          this.$refs.food.toggleShow()
+        }
+      },
+        computed: {
+          ...mapState(['goods']),
+          currentIndex() {
+            const {scrollY, tops} = this
+            return tops.findIndex((top, index) => {
+              return scrollY >= top && scrollY < tops[index + 1]
+            })
+          }
+
+      }
+
     }
 
 </script>
